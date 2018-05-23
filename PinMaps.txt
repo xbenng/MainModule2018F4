@@ -1,0 +1,20 @@
+1-PE14: SDC
+2-PE6: Positive AIR
+5-PD1: CAN TX
+6-PE12: FRG
+7-PE13: Pump
+8-PE8: Pump PWM
+9-PE11: RFE
+12-PB10: Buzzer
+13-PD0: CAN RX
+14-PE7: Brake Light
+15-PE10: Battery Fan
+17-GND: GND
+19-5V: 5V
+20-PC4: pump readings
+21-PC5: 5V readings
+22-PB0: 12V readings
+23-PB1: 24V readings
+24-PA2: 
+25-PA1
+26-
