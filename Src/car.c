@@ -68,7 +68,7 @@ void ISR_StartButtonPressed() {
 	if (car.state == CAR_STATE_INIT)
 	{
 		if (car.brake >= BRAKE_PRESSED_THRESHOLD//check if brake is pressed before starting car
-			&& HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == GPIO_PIN_SET //check if precharge has finished
+			//&& HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == GPIO_PIN_SET //check if precharge has finished
 		)
 		car.state = CAR_STATE_PREREADY2DRIVE;
 	} else {
