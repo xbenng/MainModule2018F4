@@ -48,10 +48,10 @@ void carInit() {
 	car.brake = 0;
 	car.phcan = &hcan1;
 	car.calibrate_flag = CALIBRATE_NONE;
-	car.throttle1_min = 0x0cc0;
-	car.throttle1_max = 0x0290;
-	car.throttle2_min = 0x0be9;
-	car.throttle2_max = 0x0190;
+	car.throttle1_min = 0x0e10;
+	car.throttle1_max = 0x0323;
+	car.throttle2_min = 0x0d3c;
+	car.throttle2_max = 0x026c;
 	car.brake1_min = 0x027c;
 	car.brake1_max = 0x0900;
 	car.brake2_min = 0x026f;
@@ -68,7 +68,7 @@ void ISR_StartButtonPressed() {
 	if (car.state == CAR_STATE_INIT)
 	{
 		if (car.brake >= BRAKE_PRESSED_THRESHOLD//check if brake is pressed before starting car
-			//&& HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == GPIO_PIN_SET //check if precharge has finished
+			&& HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == GPIO_PIN_RESET //check if precharge has finished
 		)
 		car.state = CAR_STATE_PREREADY2DRIVE;
 	} else {
@@ -200,13 +200,29 @@ void taskBlink(void* can)
 		tx.RTR = CAN_RTR_DATA;
 		tx.StdId = 0x200;
 		tx.DLC = 1;
-		if (car.state == CAR_STATE_INIT)
+		tx.Data[0] = 0;
+		switch (car.state)
 		{
-			tx.Data[0] = 0;
+		case CAR_STATE_INIT :
+			tx.Data[0] |= 0b00000000;
+			break;
+		case CAR_STATE_PREREADY2DRIVE:
+			tx.Data[0] |= 0b00000001;
+			break;
+		case CAR_STATE_READY2DRIVE :
+			tx.Data[0] |= 0b00000010;
+			break;
+		case CAR_STATE_RESET :
+			tx.Data[0] |= 0b00000011;
+			break;
+		case CAR_STATE_ERROR :
+			tx.Data[0] |=  0b00000100;
+			break;
 		}
-		else if (car.state == CAR_STATE_READY2DRIVE)
+
+		if(!HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port,P_AIR_STATUS_Pin))
 		{
-			tx.Data[0] = 1;
+			tx.Data[0] |= 0b00001000;
 		}
 		if (xSemaphoreTake(car.m_CAN, 100) == pdTRUE)
 		{

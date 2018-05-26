@@ -144,20 +144,21 @@ void enableMotorController() {
 *		chapter 10 bamocar ndrive manual
 *
 ***************************************************************************/
-	HAL_GPIO_WritePin(FRG_RUN_GPIO_Port, FRG_RUN_Pin, GPIO_PIN_SET);
+
+	HAL_GPIO_WritePin(RFE_GPIO_Port, RFE_Pin, GPIO_PIN_SET);
 
 	vTaskDelay(500 / portTICK_RATE_MS);  //wait 500ms, see BAMOCAR manual
-	HAL_GPIO_WritePin(RFE_GPIO_Port, RFE_Pin, GPIO_PIN_SET);
 	//request 10, BAMOCAR CAN MANUAL
 
-	CanTxMsgTypeDef tx;
-	tx.IDE = 		CAN_ID_STD;
-	tx.StdId = 		ID_BAMOCAR_STATION_TX;
-	tx.DLC = 		3;
-	tx.Data[0] = 	0xd0;
-	tx.Data[0] = 	0x4f;
-	tx.Data[1] =	0x01;
-	xQueueSendToBack(car.q_txcan, &tx, 100);
+	HAL_GPIO_WritePin(FRG_RUN_GPIO_Port, FRG_RUN_Pin, GPIO_PIN_SET);
+//	CanTxMsgTypeDef tx;
+//	tx.IDE = 		CAN_ID_STD;
+//	tx.StdId = 		ID_BAMOCAR_STATION_TX;
+//	tx.DLC = 		3;
+//	tx.Data[0] = 	0xd0;
+//	tx.Data[0] = 	0x4f;
+//	tx.Data[1] =	0x01;
+//	xQueueSendToBack(car.q_txcan, &tx, 100);
 
 
 

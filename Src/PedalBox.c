@@ -81,12 +81,18 @@ void taskPedalBoxMsgHandler() {
 			float 			throttle_avg  = (throttle1_cal + throttle2_cal) / 2.0;
 			float			brake_avg     = (brake1_cal + brake2_cal) / 2.0;
 
+
 			// EV 2.4.6: Encoder out of range
-			if (!(throttle1_sign * pedalboxmsg.throttle1_raw >= throttle1_sign * car.throttle1_min &&
-				 throttle1_sign * pedalboxmsg.throttle1_raw <= throttle1_sign * car.throttle1_max)
-				||
-				!(throttle2_sign * pedalboxmsg.throttle2_raw >= throttle2_sign * car.throttle2_min &&
-				throttle2_sign * pedalboxmsg.throttle2_raw <= throttle2_sign * car.throttle2_max)
+			if (
+//				!(throttle1_sign * pedalboxmsg.throttle1_raw >= throttle1_sign * car.throttle1_min &&
+//				 throttle1_sign * pedalboxmsg.throttle1_raw <= throttle1_sign * car.throttle1_max)
+//				||
+//				!(throttle2_sign * pedalboxmsg.throttle2_raw >= throttle2_sign * car.throttle2_min &&
+//				throttle2_sign * pedalboxmsg.throttle2_raw <= throttle2_sign * car.throttle2_max)
+				pedalboxmsg.throttle1_raw >= 0x0e70 ||
+				pedalboxmsg.throttle1_raw <= 0x019a ||
+				pedalboxmsg.throttle2_raw >= 0x0e70 ||
+				pedalboxmsg.throttle2_raw <= 0x019a
 			)
 			{
 				car.apps_state_eor = PEDALBOX_STATUS_ERROR;
@@ -134,16 +140,16 @@ void taskPedalBoxMsgHandler() {
 
 // set car variables
 			car.brake = brake_avg;
-			if (throttle_avg > .1)
+			if (throttle_avg >= .1)
 			{
-				if (throttle_avg > .9)
+				if (throttle_avg >= .9)
 				{
 					car.throttle_acc = MAX_THROTTLE_LEVEL;
 				}
 				else
 				{
 					//no errors, set throttle to value received from pedalbox
-					car.throttle_acc = (throttle_avg * MAX_THROTTLE_LEVEL);
+					car.throttle_acc = ((throttle_avg-.1) * MAX_THROTTLE_LEVEL / .8);
 				}
 			//car.throttle_cnt ++;
 			}
