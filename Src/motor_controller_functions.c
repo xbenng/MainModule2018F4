@@ -53,6 +53,26 @@ void mcCmdTorque(uint16_t torqueVal) {
 	//xQueueSendToBack(car.q_txcan, &tx, 100);
 }
 
+void mcCmdTorqueFake(uint16_t torqueVal) {
+	//example 5, BAMOCAR CAN MANUAL
+	CanTxMsgTypeDef tx;
+	tx.IDE = 		CAN_ID_STD;
+	tx.StdId = 		0x490;
+	tx.DLC = 		DLC_CMD_TORQUE;
+	tx.RTR =		CAN_RTR_DATA;
+	tx.Data[0] = 	REGID_CMD_TORQUE;
+	tx.Data[1] =	(uint8_t) torqueVal;	//bytes 7-0
+	tx.Data[2] =	(uint8_t) (torqueVal >> 8);		//bytes 11-8
+	if (xSemaphoreTake(car.m_CAN, 100) == pdTRUE)
+	{
+		car.phcan->pTxMsg = &tx;
+		HAL_CAN_Transmit(car.phcan, 100);
+		xSemaphoreGive(car.m_CAN);  //release CAN mutex
+	}
+	//xQueueSendToBack(car.q_txcan, &tx, 100);
+}
+
+
 void mcCmdTransmissionRequestPermenant (uint8_t regid, uint8_t retransmitTimeMS) {
 	//example 10, BAMOCAR CAN MANUAL
 	CanTxMsgTypeDef tx;
@@ -80,8 +100,12 @@ void mcCmdTransmissionRequestSingle(uint8_t regid) {
 	tx.Data[0] = 	REGID_CMD_REQUEST_DATA;
 	tx.Data[1] =	regid;
 	tx.Data[2] =	RETRANSMISSION_SINGLE;
-	xQueueSendToBack(car.q_txcan, &tx, 100);
-}
+	if (xSemaphoreTake(car.m_CAN, 100) == pdTRUE)
+	{
+		car.phcan->pTxMsg = &tx;
+		HAL_CAN_Transmit(car.phcan, 100);
+		xSemaphoreGive(car.m_CAN);  //release CAN mutex
+	}}
 
 void mcCmdTransmissionAbortPermenant(uint8_t regid) {
 	//example 10, BAMOCAR CAN MANUAL
@@ -92,8 +116,12 @@ void mcCmdTransmissionAbortPermenant(uint8_t regid) {
 	tx.Data[0] = 	REGID_CMD_REQUEST_DATA;
 	tx.Data[1] =	regid;
 	tx.Data[2] =	RETRANSMISSION_ABORT;
-	xQueueSendToBack(car.q_txcan, &tx, 100);
-
+	if (xSemaphoreTake(car.m_CAN, 100) == pdTRUE)
+	{
+		car.phcan->pTxMsg = &tx;
+		HAL_CAN_Transmit(car.phcan, 100);
+		xSemaphoreGive(car.m_CAN);  //release CAN mutex
+	}
 }
 
 void disableMotor()
