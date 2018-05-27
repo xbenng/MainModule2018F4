@@ -62,6 +62,11 @@ typedef enum
   	BRAKE_LIGHT_ON = GPIO_PIN_SET
 } Brake_light_status_t;
 
+typedef enum
+{
+	PC_INPROGRESS = GPIO_PIN_SET,
+	PC_COMPLETE = GPIO_PIN_RESET
+} PC_status_t;
 
 //launch control
 typedef enum {

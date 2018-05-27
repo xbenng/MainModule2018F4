@@ -140,16 +140,16 @@ void taskPedalBoxMsgHandler() {
 
 // set car variables
 			car.brake = brake_avg;
-			if (throttle_avg >= .1)
+			if (throttle_avg >= 0.1)
 			{
-				if (throttle_avg >= .9)
+				if (throttle_avg >= 0.9)
 				{
 					car.throttle_acc = MAX_THROTTLE_LEVEL;
 				}
 				else
 				{
 					//no errors, set throttle to value received from pedalbox
-					car.throttle_acc = ((throttle_avg-.1) * MAX_THROTTLE_LEVEL / .8);
+					car.throttle_acc = ((throttle_avg - 0.1) * MAX_THROTTLE_LEVEL / 0.8);
 				}
 			//car.throttle_cnt ++;
 			}

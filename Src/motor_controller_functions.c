@@ -62,8 +62,12 @@ void mcCmdTransmissionRequestPermenant (uint8_t regid, uint8_t retransmitTimeMS)
 	tx.Data[0] = 	REGID_CMD_REQUEST_DATA;
 	tx.Data[1] =	regid;
 	tx.Data[2] =	(uint8_t) retransmitTimeMS;
-	xQueueSendToBack(car.q_txcan, &tx, 100);
-
+	if (xSemaphoreTake(car.m_CAN, 100) == pdTRUE)
+	{
+		car.phcan->pTxMsg = &tx;
+		HAL_CAN_Transmit(car.phcan, 100);
+		xSemaphoreGive(car.m_CAN);  //release CAN mutex
+	}
 }
 
 //use regid's defined in motor_controller.h
@@ -151,14 +155,22 @@ void enableMotorController() {
 	//request 10, BAMOCAR CAN MANUAL
 
 	HAL_GPIO_WritePin(FRG_RUN_GPIO_Port, FRG_RUN_Pin, GPIO_PIN_SET);
-//	CanTxMsgTypeDef tx;
-//	tx.IDE = 		CAN_ID_STD;
-//	tx.StdId = 		ID_BAMOCAR_STATION_TX;
-//	tx.DLC = 		3;
-//	tx.Data[0] = 	0xd0;
-//	tx.Data[0] = 	0x4f;
-//	tx.Data[1] =	0x01;
-//	xQueueSendToBack(car.q_txcan, &tx, 100);
+
+	//Enable Motor Controller CAN Timeout
+	CanTxMsgTypeDef tx;
+	tx.IDE = 		CAN_ID_STD;
+	tx.StdId = 		ID_BAMOCAR_STATION_TX;
+	tx.DLC = 		3;
+	tx.Data[0] = 	0xd0;
+	tx.Data[0] = 	0x4f;
+	tx.Data[1] =	0x01;
+	//xQueueSendToBack(car.q_txcan, &tx, 100);
+	if (xSemaphoreTake(car.m_CAN, 100) == pdTRUE)
+	{
+		car.phcan->pTxMsg = &tx;
+		HAL_CAN_Transmit(car.phcan, 100);
+		xSemaphoreGive(car.m_CAN);  //release CAN mutex
+	}
 
 
 
