@@ -55,10 +55,13 @@
 #include "BMS.h"
 #include "PedalBox.h"
 #include "CANProcess.h"
+#include "accelerometer.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
 CAN_HandleTypeDef hcan1;
+
+SPI_HandleTypeDef hspi1;
 
 osThreadId defaultTaskHandle;
 
@@ -72,6 +75,7 @@ BMS_t BMS;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_CAN1_Init(void);
+static void MX_SPI1_Init(void);
 void StartDefaultTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
@@ -109,10 +113,12 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_CAN1_Init();
+  MX_SPI1_Init();
 
   /* USER CODE BEGIN 2 */
   carInit();
   CANFilterConfig();
+	Accelero_Init(Sensitivity_2G);
   initRTOSObjects();  //start tasks in here
 	HAL_CAN_Receive_IT(&hcan1, 0);
 	HAL_CAN_Receive_IT(&hcan1, 1);
@@ -247,6 +253,29 @@ static void MX_CAN1_Init(void)
 
 }
 
+/* SPI1 init function */
+static void MX_SPI1_Init(void)
+{
+
+  hspi1.Instance = SPI1;
+  hspi1.Init.Mode = SPI_MODE_MASTER;
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi1.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
 /** Configure pins as 
         * Analog 
         * Input 
@@ -255,9 +284,6 @@ static void MX_CAN1_Init(void)
         * EXTI
      PC3   ------> I2S2_SD
      PA4   ------> I2S3_WS
-     PA5   ------> SPI1_SCK
-     PA6   ------> SPI1_MISO
-     PA7   ------> SPI1_MOSI
      PC7   ------> I2S3_MCK
      PA9   ------> USB_OTG_FS_VBUS
      PA10   ------> USB_OTG_FS_ID
@@ -282,8 +308,8 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, CS_I2C_SPI_Pin|BRAKE_LIGHT_Pin|GPIO_PIN_8|BATT_FAN_Pin 
-                          |RFE_Pin|FRG_RUN_Pin|PUMP_Pin|SDC_CTRL_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, CS_I2C_SPI_Pin|BRAKE_LIGHT_Pin|BATT_FAN_Pin|RFE_Pin 
+                          |FRG_RUN_Pin|PUMP_Pin|SDC_CTRL_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(OTG_FS_PowerSwitchOn_GPIO_Port, OTG_FS_PowerSwitchOn_Pin, GPIO_PIN_SET);
@@ -295,10 +321,10 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOD, LD4_Pin|LD3_Pin|LD5_Pin|LD6_Pin 
                           |Audio_RST_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : CS_I2C_SPI_Pin BRAKE_LIGHT_Pin PE8 BATT_FAN_Pin 
-                           RFE_Pin FRG_RUN_Pin PUMP_Pin SDC_CTRL_Pin */
-  GPIO_InitStruct.Pin = CS_I2C_SPI_Pin|BRAKE_LIGHT_Pin|GPIO_PIN_8|BATT_FAN_Pin 
-                          |RFE_Pin|FRG_RUN_Pin|PUMP_Pin|SDC_CTRL_Pin;
+  /*Configure GPIO pins : CS_I2C_SPI_Pin BRAKE_LIGHT_Pin BATT_FAN_Pin RFE_Pin 
+                           FRG_RUN_Pin PUMP_Pin SDC_CTRL_Pin */
+  GPIO_InitStruct.Pin = CS_I2C_SPI_Pin|BRAKE_LIGHT_Pin|BATT_FAN_Pin|RFE_Pin 
+                          |FRG_RUN_Pin|PUMP_Pin|SDC_CTRL_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -338,14 +364,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
   HAL_GPIO_Init(I2S3_WS_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : SPI1_SCK_Pin SPI1_MISO_Pin SPI1_MOSI_Pin */
-  GPIO_InitStruct.Pin = SPI1_SCK_Pin|SPI1_MISO_Pin|SPI1_MOSI_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : BOOT1_Pin */
   GPIO_InitStruct.Pin = BOOT1_Pin;

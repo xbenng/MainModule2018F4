@@ -16,6 +16,7 @@
 ***************************************************************************/
 
 #include "car.h"
+#include "accelerometer.h"
 
 void carSetBrakeLight(Brake_light_status_t status)
 /***************************************************************************
@@ -182,6 +183,7 @@ void initRTOSObjects() {
 	//xTaskCreate(taskTXCAN, "TX CAN", 256, NULL, 1, NULL);
 	xTaskCreate(taskRXCANProcess, "RX CAN", 256, NULL, 1, NULL);
 	xTaskCreate(taskBlink, "blink", 256, NULL, 1, NULL);
+	xTaskCreate(taskSendAccelero, "accelro", 256, NULL, 1, NULL);
 	//xTaskCreate(taskMotorControllerPoll, "Motor Poll", 256, NULL, 1, NULL);
  }
 //extern uint8_t variable;
@@ -318,6 +320,7 @@ void taskCarMainRoutine() {
 		}
 
 		mcCmdTorqueFake(car.throttle_acc);
+
 
 
 		CanTxMsgTypeDef tx;
