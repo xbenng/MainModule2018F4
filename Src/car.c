@@ -48,10 +48,10 @@ void carInit() {
 	car.brake = 0;
 	car.phcan = &hcan1;
 	car.calibrate_flag = CALIBRATE_NONE;
-	car.throttle1_min = 0x0e10;
-	car.throttle1_max = 0x0323;
-	car.throttle2_min = 0x0d3c;
-	car.throttle2_max = 0x026c;
+	car.throttle1_min = 0x0f70;
+	car.throttle1_max = 0x0860;
+	car.throttle2_min = 0x0eb0;
+	car.throttle2_max = 0x0750;
 	car.brake1_min = 0x027c;
 	car.brake1_max = 0x0900;
 	car.brake2_min = 0x026f;
@@ -182,7 +182,7 @@ void initRTOSObjects() {
 	//xTaskCreate(taskTXCAN, "TX CAN", 256, NULL, 1, NULL);
 	xTaskCreate(taskRXCANProcess, "RX CAN", 256, NULL, 1, NULL);
 	xTaskCreate(taskBlink, "blink", 256, NULL, 1, NULL);
-	//xTaskCreate(taskMotorControllerPoll, "Motor Poll", 64, NULL, 1, NULL);
+	//xTaskCreate(taskMotorControllerPoll, "Motor Poll", 256, NULL, 1, NULL);
  }
 //extern uint8_t variable;
 void taskBlink(void* can)
@@ -312,10 +312,12 @@ void taskCarMainRoutine() {
 			carSetBrakeLight(BRAKE_LIGHT_OFF);  //turn off brake light
 		}
 
-		if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == PC_INPROGRESS)
+		if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == GPIO_PIN_SET && car.state == CAR_STATE_READY2DRIVE)
 		{
 			car.state = CAR_STATE_RESET;
 		}
+
+		mcCmdTorqueFake(car.throttle_acc);
 
 
 		CanTxMsgTypeDef tx;
@@ -361,8 +363,10 @@ void taskCarMainRoutine() {
 			vTaskDelay((uint32_t) 2000 / portTICK_RATE_MS);
 			HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET); //turn off buzzer			car.state = CAR_STATE_READY2DRIVE;  //car is started
 			HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET);
-			car.state = CAR_STATE_READY2DRIVE;  //car is started
-
+			if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == PC_COMPLETE)
+			{
+				car.state = CAR_STATE_READY2DRIVE;  //car is started
+			}
 		}
 		else if (car.state == CAR_STATE_READY2DRIVE)
 		{
@@ -400,7 +404,7 @@ void taskCarMainRoutine() {
 			HAL_GPIO_WritePin(RFE_GPIO_Port,RFE_Pin,GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(FRG_RUN_GPIO_Port,FRG_RUN_Pin,GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(BATT_FAN_GPIO_Port,BATT_FAN_Pin,GPIO_PIN_RESET);
-			xTaskCreate(taskSoundBuzzer, "buzzer is on", 64, (void *) 300, 1, NULL);
+			//xTaskCreate(taskSoundBuzzer, "buzzer is on", 64, (void *) 300, 1, NULL);
 			car.state = CAR_STATE_INIT;
 
 		}

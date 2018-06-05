@@ -18,6 +18,7 @@ void mcCmdTransmissionRequestPermenant (uint8_t regid, uint8_t retransmitTimeMS)
 void mcCmdTransmissionRequestSingle(uint8_t regid);
 void mcCmdTransmissionAbortPermenant(uint8_t regid);
 void mcCmdTorque(uint16_t);
+void mcCmdTorqueFake(uint16_t);
 
 //CAN Defines
 
